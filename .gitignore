@@ -4,7 +4,7 @@ __pycache__/
 *.pyc
 
 # --- Simulation Data (Don't upload generated text files) ---
-sim_data/
+#sim_data/
 #*.txt
 *.log
 
@@ -25,6 +25,6 @@ Thumbs.db
 # --- Obsidian (Optional) ---
 # Uncomment below if you ONLY want text, not plugin settings/themes
 # .obsidian/
-powerpoints/
+#powerpoints/
 *.key
 *.pptx
