@@ -1,0 +1,30 @@
+# --- Python & Jupyter ---
+__pycache__/
+*.ipynb_checkpoints/
+*.pyc
+
+# --- Simulation Data (Don't upload generated text files) ---
+sim_data/
+#*.txt
+*.log
+
+# --- Large Datasets ---
+# Only upload the script to generate data, not the data itself
+#*.npz
+#*.csv
+
+# --- C++ Build Files ---
+#equalizer_sim
+#*.exe
+#*.o
+
+# --- OS Junk ---
+.DS_Store
+Thumbs.db
+
+# --- Obsidian (Optional) ---
+# Uncomment below if you ONLY want text, not plugin settings/themes
+# .obsidian/
+powerpoints/
+*.key
+*.pptx
