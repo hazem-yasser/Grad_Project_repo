@@ -29,7 +29,7 @@ module tb_neural_eq_top();
 
         $display("--- Starting Simulation ---");
 
-        for (i = 0; i < 5000; i++) begin
+        for (i = 0; i < 2000; i++) begin
             in_I = stimuli_mem[i*2];   
             in_Q = stimuli_mem[i*2+1]; 
             repeat(9) @(posedge clk);

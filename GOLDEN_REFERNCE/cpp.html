@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
+    .flow-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    .box { border: 2px solid #333; padding: 15px; border-radius: 8px; background: white; width: 300px; text-align: center; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+    .arrow { font-size: 24px; color: #666; }
+    .highlight { color: #d9534f; font-weight: bold; }
+    .math { font-family: "Courier New", monospace; background: #eee; padding: 5px; display: block; margin-top: 5px; font-size: 0.9em; }
+</style>
+</head>
+<body>
+    <div class="flow-container">
+        <h2>C++ Bit-Exact Model Logic</h2>
+        
+        <div class="box">
+            <strong>1. Input Latch</strong><br>
+            Grabs 10 samples (5 Real, 5 Imag)
+            <span class="math">[Re<sub>-2</sub>...Re<sub>+2</sub>, Im<sub>-2</sub>...Im<sub>+2</sub>]</span>
+        </div>
+        <div class="arrow">↓</div>
+        
+        <div class="box">
+            <strong>2. DSP MAC Unit (Per Neuron)</strong><br>
+            Multiplies inputs by ROM weights
+            <span class="math">Acc = &Sigma;(In<sub>i</sub> &times; W<sub>i</sub>)</span>
+        </div>
+        <div class="arrow">↓</div>
+        
+        <div class="box">
+            <strong>3. Scaling & Bias</strong><br>
+            Shift right 14 bits, add bias
+            <span class="math">Acc = (Acc >> 14) + Bias</span>
+        </div>
+        <div class="arrow">↓</div>
+        
+        <div class="box">
+            <strong>4. Activation & Clamping</strong><br>
+            Apply <span class="highlight">ReLU</span> and clamp to 16-bit
+            <span class="math">Out = Clip(Acc, -32768, 32767)</span>
+        </div>
+        <div class="arrow">↓</div>
+        
+        <div class="box">
+            <strong>5. Sequential Pipeline</strong><br>
+            L1 Results &rarr; L2 Inputs<br>
+            L2 Results &rarr; L3 Inputs
+        </div>
+        <div class="arrow">↓</div>
+        
+        <div class="box" style="background: #dff0d8;">
+            <strong>6. Output</strong><br>
+            Write 16-bit Integer <br>
+            <span class="math">(I_out, Q_out)</span>
+        </div>
+    </div>
+</body>
+</html>

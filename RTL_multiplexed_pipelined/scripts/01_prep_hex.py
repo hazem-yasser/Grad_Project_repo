@@ -44,10 +44,26 @@ save_triple_width_hex("L3B_W.hex", L3_W[16:, :], 16, 2, 6)
 save_bias("L1_b.hex", np.loadtxt(f"{TXT_DIR}/L1_b.txt"))
 save_bias("L2_b.hex", np.loadtxt(f"{TXT_DIR}/L2_b.txt"))
 save_bias("L3_b.hex", np.loadtxt(f"{TXT_DIR}/L3_b.txt"))
-
-# FIXED: Removed the * 5.0 to prevent 16-bit integer overflow wrap-around
+# =============================================================================
+# FIXED STIMULI: Extract Index 2 (I) and Index 7 (Q) from each 10-value block
+# =============================================================================
 inputs = np.loadtxt(f"{TXT_DIR}/input_stimuli.txt")
+
+# Reshape the 20,000 lines into 2,000 distinct blocks of 10
+blocks = inputs.reshape(-1, 10)
+
+# The Golden Model window is: [I-2, I-1, I_target, I+1, I+2, Q-2, Q-1, Q_target, Q+1, Q+2]
+# Index 2 is the pure I_target. Index 7 is the pure Q_target.
+stream_I = blocks[:, 2]
+stream_Q = blocks[:, 7]
+
+# Interleave them for the existing hardware testbench: [I0, Q0, I1, Q1, I2, Q2...]
+raw_stream = np.empty((stream_I.size + stream_Q.size,), dtype=stream_I.dtype)
+raw_stream[0::2] = stream_I
+raw_stream[1::2] = stream_Q
+
 with open(f"{HEX_DIR}/input_stimuli.hex", 'w') as f:
-    for val in inputs:
+    for val in raw_stream:
         f.write(to_hex_16b(val) + '\n')
-print(" -> Generated input_stimuli.hex (16-bit Q1.14)")
+        
+print(f" -> Generated input_stimuli.hex: Reduced {len(inputs)} lines to {len(raw_stream)} lines!")

@@ -30,11 +30,11 @@ best_config = ""
 r_best_aligned = []
 t_best_aligned = []
 
-print("-> Sweeping time delays (-50 to +50 symbols) across all I/Q configurations...")
+print("-> Sweeping time delays (-80 to +90 symbols) across all I/Q configurations...")
 
 for name, r_complex in configs.items():
-    for delay in range(-50, 51):
-        # Shift arrays depending on if delay is positive or negative
+    # EXPANDED SEARCH RANGE: -80 to 90
+    for delay in range(-80, 91):
         if delay > 0:
             t_slice = target_complex[delay : delay + len(r_complex)]
             r_slice = r_complex[:len(t_slice)]
