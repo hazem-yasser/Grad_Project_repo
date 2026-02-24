@@ -6,7 +6,8 @@ module tb_neural_eq_top();
     logic valid_out;
 
     int i, out_file;
-    logic signed [31:0] stimuli_mem [0:19999];
+    // FIXED: Back to 16-bit to match the Q1.14 format perfectly
+    logic signed [15:0] stimuli_mem [0:19999];
 
     neural_eq_top DUT (
         .clk(clk), .rst_n(rst_n),
@@ -29,8 +30,8 @@ module tb_neural_eq_top();
         $display("--- Starting Simulation ---");
 
         for (i = 0; i < 5000; i++) begin
-            in_I = stimuli_mem[i*2][15:0];   
-            in_Q = stimuli_mem[i*2+1][15:0]; 
+            in_I = stimuli_mem[i*2];   
+            in_Q = stimuli_mem[i*2+1]; 
             repeat(9) @(posedge clk);
         end
 
