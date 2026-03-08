@@ -19,7 +19,7 @@ module neural_eq_top (
     logic v_win;
     
     logic [2:0] fill_cnt;
-    logic [1:0] flush_cnt;
+    logic [2:0] flush_cnt;
     logic [7:0] silence_timer;
     logic flushing_active;
 
@@ -47,14 +47,15 @@ module neural_eq_top (
                 end else v_win <= 1; // Pulse ONCE per symbol
             end 
             else if (flushing_active) begin
-                if (flush_cnt < 2) begin
+                if (flush_cnt == 0 || flush_cnt == 6) begin
                     for (int i=0; i<4; i++) begin win_I[i] <= win_I[i+1]; win_Q[i] <= win_Q[i+1]; end
                     win_I[4] <= INIT_VAL; win_Q[4] <= INIT_VAL;
                     v_win <= 1; 
-                    flush_cnt <= flush_cnt + 1;
-                end else begin
-                    flushing_active <= 0; flush_cnt <= 0; silence_timer <= 0;
                 end
+                if (flush_cnt < 7)
+                    flush_cnt <= flush_cnt + 1;
+                else
+                    flushing_active <= 0;
             end
         end
     end
