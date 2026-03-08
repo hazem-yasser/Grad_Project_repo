@@ -4,7 +4,7 @@ RTL_SRC = rtl/*.sv
 # تحديث هذا السطر فقط
 TB_SRC  = tb/tb_neural_eq_top.sv
 SIM_OUT = sim_data/sim.vvp
-VCD_OUT = sim_data/dump.vcd
+VCD_OUT = sim_data/debug.vcd
 
 all: prep compile sim verify
 
