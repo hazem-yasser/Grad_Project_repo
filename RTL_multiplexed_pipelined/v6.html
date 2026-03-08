@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monolithic RTL & Auto-Alignment Breakdown</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a0a0f;
+    --cyan:     #00d4ff;
+    --gold:     #f5a623;
+    --accent:   #ff3366;
+    --green:    #39ff14;
+    --purple:   #b066ff;
+    --orange:   #ff8800;
+    --text:     #e0e6ed;
+    --dim:      #8a95a5;
+    --border:   rgba(255,255,255,0.08);
+    --panel:    rgba(25, 25, 35, 0.6);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    padding: 2rem;
+    line-height: 1.6;
+    background-image: 
+      linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+
+  header { text-align: center; margin-bottom: 3rem; border-bottom: 1px solid var(--border); padding-bottom: 2rem; }
+  header h1 { font-family: 'Share Tech Mono', monospace; font-size: 2.2rem; color: var(--gold); letter-spacing: 2px; }
+  header p { color: var(--dim); margin-top: 1rem; font-size: 1.1rem; max-width: 800px; margin-left: auto; margin-right: auto; }
+
+  .container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 2.5rem; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  .card-header {
+    padding: 1.2rem 1.5rem;
+    background: rgba(0,0,0,0.4);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .card-header h2 { font-family: 'Share Tech Mono', monospace; font-size: 1.2rem; letter-spacing: 1px; }
+  
+  .ch-blue { border-left: 5px solid var(--cyan); }
+  .ch-blue h2 { color: var(--cyan); }
+  .ch-purple { border-left: 5px solid var(--purple); }
+  .ch-purple h2 { color: var(--purple); }
+  .ch-green { border-left: 5px solid var(--green); }
+  .ch-green h2 { color: var(--green); }
+  .ch-orange { border-left: 5px solid var(--orange); }
+  .ch-orange h2 { color: var(--orange); }
+
+  .card-body { padding: 1.5rem; }
+  
+  .code-block {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: #c9d1d9;
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+  }
+  .code-block .kw { color: #ff7b72; } /* Keywords */
+  .code-block .var { color: #79c0ff; } /* Variables */
+  .code-block .num { color: #a5d6ff; } /* Numbers */
+  .code-block .cmt { color: #8b949e; } /* Comments */
+
+  .explanation {
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+    padding: 1.2rem;
+    border-left: 3px solid var(--dim);
+    margin-bottom: 1.5rem;
+  }
+  .explanation h3 { font-size: 1.1rem; color: #fff; margin-bottom: 0.8rem; font-family: 'Share Tech Mono', monospace; }
+  .explanation p { margin-bottom: 0.8rem; color: var(--dim); font-size: 0.95rem; }
+  .explanation p:last-child { margin-bottom: 0; }
+
+  .highlight-word { color: var(--gold); font-weight: 600; font-family: 'Share Tech Mono', monospace; }
+
+  .step-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+  .step-box {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 1.2rem;
+    border-radius: 8px;
+  }
+  .step-box h4 { color: var(--cyan); font-family: 'Share Tech Mono', monospace; margin-bottom: 0.8rem; font-size: 0.9rem; }
+  .step-box p { font-size: 0.85rem; color: var(--dim); }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>DECODING THE MONOLITHIC PIPELINE</h1>
+  <p>An exhaustive breakdown of the Time-Multiplexed SystemVerilog FSM, Hex Formatting, and Deep Search Python Verification.</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <div class="card-header ch-purple">
+      <h2>1. THE SYSTEMVERILOG MULTIPLEXER (THE "CASE" STATEMENT)</h2>
+    </div>
+    <div class="card-body">
+      <div class="explanation">
+        <h3>What is this code doing?</h3>
+        <p>In the monolithic design, Layer 3 Stage B needs to process 32 inputs. However, we only have <strong>3 multipliers</strong> (a Triple-MAC) to save silicon area. To process 32 inputs with only 3 multipliers, we must reuse them over time. This is called <strong>Time-Multiplexing</strong>.</p>
+        <p>The <span class="highlight-word">tick_cnt</span> acts as the conductor of an orchestra. As the clock ticks from 1 to 6, the <code>case</code> statement routes different chunks of the pipeline register (<code>l2b_reg</code>) into the multiplier inputs (<code>m_in1, m_in2, m_in3</code>).</p>
+      </div>
+
+      <div class="code-block">
+<span class="kw">always_comb begin</span>
+  <span class="kw">case</span> (<span class="var">tick_cnt</span>)
+    <span class="num">1</span>: {<span class="var">m_in1</span>, <span class="var">m_in2</span>, <span class="var">m_in3</span>} = {<span class="var">l2b_reg</span>[<span class="num">16</span>], <span class="var">l2b_reg</span>[<span class="num">17</span>], <span class="var">l2b_reg</span>[<span class="num">18</span>]};
+    <span class="num">2</span>: {<span class="var">m_in1</span>, <span class="var">m_in2</span>, <span class="var">m_in3</span>} = {<span class="var">l2b_reg</span>[<span class="num">19</span>], <span class="var">l2b_reg</span>[<span class="num">20</span>], <span class="var">l2b_reg</span>[<span class="num">21</span>]};
+    <span class="cmt">// ... cycles 3, 4, 5 do the same for the next inputs ...</span>
+    <span class="num">6</span>: {<span class="var">m_in1</span>, <span class="var">m_in2</span>, <span class="var">m_in3</span>} = {<span class="var">l2b_reg</span>[<span class="num">31</span>], <span class="num">16'sd0</span>, <span class="num">16'sd0</span>};
+    <span class="kw">default</span>: {<span class="var">m_in1</span>, <span class="var">m_in2</span>, <span class="var">m_in3</span>} = {<span class="num">16'sd0</span>, <span class="num">16'sd0</span>, <span class="num">16'sd0</span>};
+  <span class="kw">endcase</span>
+  <span class="var">m_w</span> = (<span class="var">mac_en</span>) ? <span class="var">L3B_W_ROM</span>[(<span class="var">i</span> * <span class="num">6</span>) + <span class="var">rom_idx</span>] : <span class="num">48'd0</span>;
+<span class="kw">end</span>
+      </div>
+
+      <div class="step-grid">
+        <div class="step-box">
+          <h4>Tick 1 to 5 (Heavy Lifting)</h4>
+          <p>The Triple-MAC consumes 3 inputs per clock cycle. Over 5 cycles, it processes 15 inputs (Indices 16 through 30).</p>
+        </div>
+        <div class="step-box">
+          <h4>Tick 6 (The Zero Pad)</h4>
+          <p>We only have 1 input left (Index 31). The MAC unit demands 3. We feed it Index 31, and force the other two inputs to <code>16'sd0</code>. Multiplying by zero safely ignores the unused multipliers.</p>
+        </div>
+        <div class="step-box">
+          <h4>The ROM Index Math</h4>
+          <p><code>(i * 6) + rom_idx</code> ensures each of the 2 neurons (<code>i</code>) gets its specific chunk of 6 weights, perfectly synchronized with the `tick_cnt`.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header ch-blue">
+      <h2>2. PIPELINE PACING & VALID OUT</h2>
+    </div>
+    <div class="card-body">
+      <div class="code-block">
+<span class="cmt">// Output assignment at the bottom of the module</span>
+<span class="kw">assign</span> <span class="var">valid_out</span> = (<span class="var">tick_cnt</span> == <span class="num">8</span> && <span class="var">fill_cnt</span> == <span class="num">6</span>);
+      </div>
+      <div class="explanation">
+        <h3>The Conductor's Baton</h3>
+        <p>Why exactly cycle 8? And why fill count 6?</p>
+        <p><strong>tick_cnt == 8:</strong> The MAC units finish multiplying at cycle 6. Cycle 7 is used to add Stage A and Stage B together. Cycle 8 is the "Commit" cycle, where the answer is finally written to the output register <code>out_I</code> and <code>out_Q</code>. Therefore, the data is only stable and valid on exactly cycle 8 of every 9-cycle period.</p>
+        <p><strong>fill_cnt == 6:</strong> When you hit the reset button, the pipeline is full of garbage (or zeros). It takes 3 shifts for the first real input to reach the center of the window. Then it takes 3 more shifts for that data to propagate through Layer 1, Layer 2, and Layer 3. Total latency = 6 symbol periods. The <code>valid_out</code> pin is artificially forced to 0 until the 6th period to prevent spitting out garbage data.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header ch-green">
+      <h2>3. PYTHON: HEX PREPARATION & TARGET EXTRACTION</h2>
+    </div>
+    <div class="card-body">
+      <div class="explanation">
+        <h3>Converting Arrays to Hardware-Ready Streams</h3>
+        <p>Hardware cannot read raw Python 2D arrays. It needs continuous streams of binary/hexadecimal numbers. This script does two critical things: Packing weights for the Triple-MAC, and flattening the input stimulus.</p>
+      </div>
+      
+      <div class="step-grid">
+        <div class="step-box">
+          <h4>save_triple_width_hex()</h4>
+          <p>This function takes the floating-point weights, scales them to integer Q1.14, converts them to 4-character hex (16-bit), and then <strong>concatenates 3 of them together</strong> into a 48-bit string (e.g., <code>0A2B 11FF C012</code>). This is because your Triple-MAC expects 3 weights simultaneously on a single wire.</p>
+        </div>
+        <div class="step-box">
+          <h4>Target Extraction (Index 2 & 7)</h4>
+          <p>The Golden Model generates a 10-value block representing a sliding window. However, the true "target" of the neural network is just the <strong>center symbol</strong>. Index 2 is the center real part (I), and Index 7 is the center imaginary part (Q). The script discards the redundant window history, sending only a pure stream of centers to the RTL.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header ch-orange">
+      <h2>4. PYTHON: THE DEEP SEARCH VERIFIER</h2>
+    </div>
+    <div class="card-body">
+      <div class="explanation">
+        <h3>The Alignment Problem</h3>
+        <p>If you have an array of ideal outputs <code>[A, B, C, D]</code> and an array of RTL outputs <code>[0, 0, 0, A, B, C, D]</code>, you cannot simply subtract them to find the error. The RTL has a hardware delay. If you compare Target index 0 to RTL index 0, the error will be massive.</p>
+        <h3>The Sweep Loop</h3>
+        <p>The script uses a <code>for delay in range(-80, 91):</code> loop. It acts like a combination lock, shifting the RTL array across the Target array one index at a time. At every step, it calculates the <strong>Mean Squared Error (MSE)</strong>. The delay that produces the lowest MSE is mathematically proven to be the correct pipeline latency.</p>
+      </div>
+
+      <div class="code-block">
+<span class="cmt"># The Sub-Array Slicing Magic</span>
+<span class="kw">if</span> <span class="var">delay</span> > <span class="num">0</span>:
+    <span class="var">t_slice</span> = <span class="var">target_complex</span>[<span class="var">delay</span> : <span class="var">delay</span> + <span class="kw">len</span>(<span class="var">r_complex</span>)]
+    <span class="var">r_slice</span> = <span class="var">r_complex</span>[:<span class="kw">len</span>(<span class="var">t_slice</span>)]
+      </div>
+
+      <div class="explanation">
+        <p>This code prevents array out-of-bounds errors. If the best delay is 6, it chops off the first 6 targets (<code>target_complex[6:]</code>), perfectly aligning Target 6 with RTL 0. It then cuts both arrays to the exact same length (<code>len(t_slice)</code>) so NumPy can subtract them element-by-element.</p>
+      </div>
+
+      <div class="step-grid">
+        <div class="step-box">
+          <h4>Plot 1: Macro Overlay</h4>
+          <p><code>plt.scatter(t.real, t.imag, c='blue', s=80, alpha=0.3)</code> draws the 16 ideal targets as large, faint blue clouds. The RTL outputs (lime green dots) are plotted over them. If the equalization worked, the green dots will perfectly cluster inside the blue clouds.</p>
+        </div>
+        <div class="step-box">
+          <h4>Plot 2: Micro Constellation Zoom</h4>
+          <p><code>plt.xlim(2, 4)</code> and <code>plt.ylim(2, 4)</code> force the camera to zoom in on the top-right quadrant of the graph (where X and Y are around +3.0). This lets you visually inspect the "quantization noise"—the tiny errors caused by throwing away decimal precision when converting floats to 16-bit Q1.14 integers.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
