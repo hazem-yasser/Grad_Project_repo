@@ -28,3 +28,7 @@ Thumbs.db
 #powerpoints/
 *.key
 *.pptx
+
+# Generated simulation artifacts
+RTL_multiplexed_pipelined/sim_data/*.vcd
+RTL_multiplexed_pipelined/sim_data/*.vvp
