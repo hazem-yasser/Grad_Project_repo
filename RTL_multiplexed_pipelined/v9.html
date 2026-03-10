@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal Dictionary - neural_eq_top.sv</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --panel: rgba(25, 25, 35, 0.74);
+    --text: #e0e6ed;
+    --dim: #95a2b2;
+    --border: rgba(255,255,255,0.10);
+    --cyan: #00d4ff;
+    --gold: #f5a623;
+    --green: #39ff14;
+    --purple: #b066ff;
+    --orange: #ff8800;
+    --accent: #ff3366;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    line-height: 1.55;
+    padding: 1rem;
+    background-image:
+      linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .wrap { max-width: 1200px; margin: 0 auto; }
+
+  header {
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+    padding-bottom: 0.9rem;
+  }
+
+  h1 {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: clamp(1.3rem, 2.8vw, 2rem);
+  }
+
+  .sub { color: var(--dim); font-size: 0.95rem; margin-top: 0.35rem; }
+
+  .section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 0.9rem;
+    overflow: hidden;
+  }
+
+  .title {
+    font-family: 'Share Tech Mono', monospace;
+    padding: 0.75rem 0.9rem;
+    background: rgba(0,0,0,0.35);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .title.cyan { color: var(--cyan); border-left: 4px solid var(--cyan); }
+  .title.green { color: var(--green); border-left: 4px solid var(--green); }
+  .title.purple { color: var(--purple); border-left: 4px solid var(--purple); }
+  .title.orange { color: var(--orange); border-left: 4px solid var(--orange); }
+  .title.accent { color: var(--accent); border-left: 4px solid var(--accent); }
+
+  .body { padding: 0.8rem; }
+  .lead { color: #cad5e2; margin-bottom: 0.7rem; }
+
+  .mono { font-family: 'Share Tech Mono', monospace; color: #fff; }
+
+  .chips {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .chip {
+    border: 1px solid rgba(255,255,255,0.11);
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    padding: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--dim);
+  }
+
+  .table-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 980px;
+    font-size: 0.82rem;
+  }
+
+  th, td {
+    border: 1px solid rgba(255,255,255,0.11);
+    text-align: left;
+    padding: 0.48rem;
+    vertical-align: top;
+  }
+
+  th {
+    background: rgba(0,0,0,0.38);
+    color: #fff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+  }
+
+  td { color: #d5deea; }
+
+  .tag {
+    display: inline-block;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.13);
+    padding: 0.12rem 0.4rem;
+    font-size: 0.72rem;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .input { color: var(--cyan); border-color: rgba(0,212,255,0.45); }
+  .output { color: var(--green); border-color: rgba(57,255,20,0.45); }
+  .ctrl { color: var(--gold); border-color: rgba(245,166,35,0.5); }
+  .data { color: var(--purple); border-color: rgba(176,102,255,0.5); }
+  .mem { color: var(--orange); border-color: rgba(255,136,0,0.5); }
+
+  details {
+    border: 1px dashed rgba(255,255,255,0.16);
+    border-radius: 8px;
+    padding: 0.4rem 0.5rem;
+    margin-top: 0.6rem;
+  }
+
+  summary {
+    cursor: pointer;
+    color: #dce5f0;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+  }
+
+  ul { margin-top: 0.45rem; margin-left: 1rem; color: var(--dim); font-size: 0.82rem; }
+  li { margin-bottom: 0.22rem; }
+
+  .foot {
+    text-align: center;
+    color: #808c9b;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    margin-top: 0.4rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Signal Dictionary</h1>
+  <p class="sub">Signal-by-signal explanation for <span class="mono">rtl/neural_eq_top.sv</span> plus key testbench signals.</p>
+</header>
+
+<section class="section">
+  <div class="title cyan">How To Read This</div>
+  <div class="body">
+    <p class="lead">Each row maps one signal name to its purpose, when it changes, and why it exists.</p>
+    <div class="chips">
+      <div class="chip"><span class="tag input">INPUT</span> external input to module.</div>
+      <div class="chip"><span class="tag output">OUTPUT</span> final output from module.</div>
+      <div class="chip"><span class="tag ctrl">CTRL</span> handshake/FSM/timing signal.</div>
+      <div class="chip"><span class="tag data">DATA</span> arithmetic/data-path signal.</div>
+      <div class="chip"><span class="tag mem">MEM</span> ROM/storage signal.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="title green">1) Top-Level Ports</div>
+  <div class="body table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Signal</th>
+          <th>Type</th>
+          <th>Meaning</th>
+          <th>When active/updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="mono">clk</span></td><td><span class="tag input">INPUT</span> <span class="tag ctrl">CTRL</span></td><td>Main system clock.</td><td>All sequential logic updates on posedge.</td></tr>
+        <tr><td><span class="mono">rst_n</span></td><td><span class="tag input">INPUT</span> <span class="tag ctrl">CTRL</span></td><td>Active-low reset for all layer state, accumulators, and outputs.</td><td>Whenever low, most state is cleared.</td></tr>
+        <tr><td><span class="mono">valid_in</span></td><td><span class="tag input">INPUT</span> <span class="tag ctrl">CTRL</span></td><td>Marks incoming sample pair <span class="mono">in_I/in_Q</span> as valid.</td><td>Pulsed by TB once every 6 cycles.</td></tr>
+        <tr><td><span class="mono">in_I</span></td><td><span class="tag input">INPUT</span> <span class="tag data">DATA</span></td><td>Input in-phase sample, signed 16-bit.</td><td>Consumed when <span class="mono">valid_in=1</span>.</td></tr>
+        <tr><td><span class="mono">in_Q</span></td><td><span class="tag input">INPUT</span> <span class="tag data">DATA</span></td><td>Input quadrature sample, signed 16-bit.</td><td>Consumed when <span class="mono">valid_in=1</span>.</td></tr>
+        <tr><td><span class="mono">out_I</span></td><td><span class="tag output">OUTPUT</span> <span class="tag data">DATA</span></td><td>Final equalized I output after L3 saturation.</td><td>Updated on L3 tick 6 completion.</td></tr>
+        <tr><td><span class="mono">out_Q</span></td><td><span class="tag output">OUTPUT</span> <span class="tag data">DATA</span></td><td>Final equalized Q output after L3 saturation.</td><td>Updated on L3 tick 6 completion.</td></tr>
+        <tr><td><span class="mono">valid_out</span></td><td><span class="tag output">OUTPUT</span> <span class="tag ctrl">CTRL</span></td><td>One-cycle pulse indicating <span class="mono">out_I/out_Q</span> are valid.</td><td>Asserted when L3 reaches final tick.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <div class="title purple">2) Smart Window Signals</div>
+  <div class="body table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Signal</th>
+          <th>Type</th>
+          <th>What it does</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="mono">INIT_VAL</span></td><td><span class="tag data">DATA</span></td><td>Constant fill value used on reset and flush injection.</td><td>Signed 16-bit parameter.</td></tr>
+        <tr><td><span class="mono">TIMEOUT_CYCLES</span></td><td><span class="tag ctrl">CTRL</span></td><td>Silence duration before auto-flush starts.</td><td>Parameter set to 50.</td></tr>
+        <tr><td><span class="mono">win_I[0:4]</span></td><td><span class="tag data">DATA</span></td><td>Shift-register window of recent I samples.</td><td>Moves left each valid input or flush event.</td></tr>
+        <tr><td><span class="mono">win_Q[0:4]</span></td><td><span class="tag data">DATA</span></td><td>Shift-register window of recent Q samples.</td><td>Paired with <span class="mono">win_I</span>.</td></tr>
+        <tr><td><span class="mono">v_win</span></td><td><span class="tag ctrl">CTRL</span></td><td>Pulse telling L1 "window is ready this cycle".</td><td>Generated after warm-up and during flush pushes.</td></tr>
+        <tr><td><span class="mono">fill_cnt</span></td><td><span class="tag ctrl">CTRL</span></td><td>Tracks early valid symbols until window is primed.</td><td>First true window pulse begins at 3rd symbol.</td></tr>
+        <tr><td><span class="mono">flush_cnt</span></td><td><span class="tag ctrl">CTRL</span></td><td>Step index for flush sequence.</td><td>Special pushes at counts 0 and 6.</td></tr>
+        <tr><td><span class="mono">silence_timer</span></td><td><span class="tag ctrl">CTRL</span></td><td>Counts idle cycles after warm-up.</td><td>Resets on every <span class="mono">valid_in</span>.</td></tr>
+        <tr><td><span class="mono">flushing_active</span></td><td><span class="tag ctrl">CTRL</span></td><td>Enables auto-flush state machine.</td><td>Set when silence exceeds timeout.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <div class="title orange">3) Layer 1 Signals</div>
+  <div class="body table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Signal</th>
+          <th>Type</th>
+          <th>What it does</th>
+          <th>When to watch it</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="mono">l1_out[0:31]</span></td><td><span class="tag data">DATA</span></td><td>L1 neuron outputs after bias+ReLU+saturation.</td><td>Updated at tick 4 finalize cycle.</td></tr>
+        <tr><td><span class="mono">v_l1</span></td><td><span class="tag ctrl">CTRL</span></td><td>L1 done pulse toward L2.</td><td>One cycle pulse at end of L1 run.</td></tr>
+        <tr><td><span class="mono">l1_latched_I[0:4]</span></td><td><span class="tag data">DATA</span></td><td>Snapshot of I window for stable compute.</td><td>Captured when L1 starts.</td></tr>
+        <tr><td><span class="mono">l1_latched_Q[0:4]</span></td><td><span class="tag data">DATA</span></td><td>Snapshot of Q window for stable compute.</td><td>Captured when L1 starts.</td></tr>
+        <tr><td><span class="mono">l1_tick</span></td><td><span class="tag ctrl">CTRL</span></td><td>Current sub-cycle (1..4) inside L1 MAC sweep.</td><td>Main L1 timing signal.</td></tr>
+        <tr><td><span class="mono">l1_busy</span></td><td><span class="tag ctrl">CTRL</span></td><td>Indicates L1 engine currently computing.</td><td>Blocks re-entry while active.</td></tr>
+        <tr><td><span class="mono">L1_W_ROM[0:127]</span></td><td><span class="tag mem">MEM</span></td><td>Packed L1 weights from hex file.</td><td>Addressed by neuron index + tick.</td></tr>
+        <tr><td><span class="mono">L1_b_ROM[0:31]</span></td><td><span class="tag mem">MEM</span></td><td>L1 bias per neuron.</td><td>Added after accumulator scaling.</td></tr>
+        <tr><td><span class="mono">l1_in1,l1_in2,l1_in3</span></td><td><span class="tag data">DATA</span></td><td>Selected scalar triplet for current L1 tick.</td><td>Driven by <span class="mono">case(l1_tick)</span>.</td></tr>
+      </tbody>
+    </table>
+
+    <details>
+      <summary>Inside each <span class="mono">L1_MAC</span> generated neuron block</summary>
+      <ul>
+        <li><span class="mono">w_bus</span>: 48-bit packed weights for this neuron and this tick.</li>
+        <li><span class="mono">p1,p2,p3</span>: products for each selected input and weight lane.</li>
+        <li><span class="mono">acc</span>: running sum across the 4 L1 ticks.</li>
+        <li><span class="mono">final_acc/tmp</span>: finalize path before ReLU and saturation.</li>
+      </ul>
+    </details>
+  </div>
+</section>
+
+<section class="section">
+  <div class="title accent">4) Layer 2 Signals</div>
+  <div class="body table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Signal</th>
+          <th>Type</th>
+          <th>What it does</th>
+          <th>Key idea</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="mono">l2_out[0:31]</span></td><td><span class="tag data">DATA</span></td><td>L2 neuron outputs after bias+ReLU+saturation.</td><td>Feeds L3 when <span class="mono">v_l2</span> pulses.</td></tr>
+        <tr><td><span class="mono">v_l2</span></td><td><span class="tag ctrl">CTRL</span></td><td>L2 done pulse toward L3.</td><td>One cycle at <span class="mono">l2_tick==6</span> completion.</td></tr>
+        <tr><td><span class="mono">l2_tick</span></td><td><span class="tag ctrl">CTRL</span></td><td>Sub-cycle index 1..6 for L2.</td><td>Defines MUX and ROM slice.</td></tr>
+        <tr><td><span class="mono">l2_busy</span></td><td><span class="tag ctrl">CTRL</span></td><td>Marks L2 engine active.</td><td>Supports re-latch when back-to-back.</td></tr>
+        <tr><td><span class="mono">l2_latched_in[0:31]</span></td><td><span class="tag data">DATA</span></td><td>Stable copy of L1 outputs for L2 pass.</td><td>Captured on L2 start and optional re-latch.</td></tr>
+        <tr><td><span class="mono">L2A_W_ROM</span></td><td><span class="tag mem">MEM</span></td><td>Weights for first 16-input half.</td><td>Parallel half A path.</td></tr>
+        <tr><td><span class="mono">L2B_W_ROM</span></td><td><span class="tag mem">MEM</span></td><td>Weights for second 16-input half.</td><td>Parallel half B path.</td></tr>
+        <tr><td><span class="mono">L2_b_ROM</span></td><td><span class="tag mem">MEM</span></td><td>Bias values for 32 L2 neurons.</td><td>Added at finalization.</td></tr>
+        <tr><td><span class="mono">l2a_in1..3</span></td><td><span class="tag data">DATA</span></td><td>Three selected inputs from half A.</td><td>Chosen by <span class="mono">case(l2_tick)</span>.</td></tr>
+        <tr><td><span class="mono">l2b_in1..3</span></td><td><span class="tag data">DATA</span></td><td>Three selected inputs from half B.</td><td>Chosen in parallel to half A.</td></tr>
+      </tbody>
+    </table>
+
+    <details>
+      <summary>Inside each <span class="mono">L2_MAC</span> generated neuron block</summary>
+      <ul>
+        <li><span class="mono">w_bus_a/w_bus_b</span>: packed weights for A and B halves.</li>
+        <li><span class="mono">p1..p3</span>: products from half A, <span class="mono">p4..p6</span> from half B.</li>
+        <li><span class="mono">acc</span>: running sum over 6 ticks (all six products each tick).</li>
+        <li><span class="mono">final_acc/tmp</span>: finalize, scale, add bias, ReLU, saturate.</li>
+      </ul>
+    </details>
+  </div>
+</section>
+
+<section class="section">
+  <div class="title cyan">5) Layer 3 Signals</div>
+  <div class="body table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Signal</th>
+          <th>Type</th>
+          <th>What it does</th>
+          <th>Difference vs L2</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="mono">l3_tick</span></td><td><span class="tag ctrl">CTRL</span></td><td>Sub-cycle index 1..6 for output layer.</td><td>Same tick structure as L2.</td></tr>
+        <tr><td><span class="mono">l3_busy</span></td><td><span class="tag ctrl">CTRL</span></td><td>Indicates L3 processing active.</td><td>Drives output validity timing.</td></tr>
+        <tr><td><span class="mono">l3_latched_in[0:31]</span></td><td><span class="tag data">DATA</span></td><td>Stable copy of L2 outputs for L3 pass.</td><td>Captured when <span class="mono">v_l2</span> starts job.</td></tr>
+        <tr><td><span class="mono">L3A_W_ROM/L3B_W_ROM</span></td><td><span class="tag mem">MEM</span></td><td>Output-layer half-A/half-B weight tables.</td><td>Only 2 neurons total.</td></tr>
+        <tr><td><span class="mono">L3_b_ROM[0:1]</span></td><td><span class="tag mem">MEM</span></td><td>Bias for output I and Q neurons.</td><td>Applied before saturation.</td></tr>
+        <tr><td><span class="mono">l3a_in1..3 / l3b_in1..3</span></td><td><span class="tag data">DATA</span></td><td>Per-tick selected triples from each half.</td><td>Same MUX pattern as L2.</td></tr>
+      </tbody>
+    </table>
+
+    <details>
+      <summary>Inside each <span class="mono">L3_MAC</span> generated neuron block</summary>
+      <ul>
+        <li><span class="mono">w_bus_a/w_bus_b</span>: current packed weights for neuron and tick.</li>
+        <li><span class="mono">p1..p6</span>: six multipliers (3 from each half).</li>
+        <li><span class="mono">acc</span>: accumulated sum across ticks.</li>
+        <li><span class="mono">tmp</span>: final scaled + biased result with saturation only (no ReLU).</li>
+        <li><span class="mono">if (i==0) out_I else out_Q</span>: maps generated neuron index to I/Q outputs.</li>
+      </ul>
+    </details>
+  </div>
+</section>
+
+<section class="section">
+  <div class="title green">6) Key Testbench Signals (`tb/tb_neural_eq_top.sv`)</div>
+  <div class="body table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Signal</th>
+          <th>Purpose</th>
+          <th>Behavior in this TB</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="mono">stimuli_mem[0:3999]</span></td><td>Stores input hex samples (I and Q interleaved).</td><td>Zero-initialized first, then loaded via <span class="mono">$readmemh</span>.</td></tr>
+        <tr><td><span class="mono">valid_in</span></td><td>Input strobe for DUT.</td><td>Raised for 1 cycle, then lowered for 5 cycles (period = 6).</td></tr>
+        <tr><td><span class="mono">in_I/in_Q</span></td><td>DUT stimulus samples.</td><td>Loaded from <span class="mono">stimuli_mem[i*2], stimuli_mem[i*2+1]</span>.</td></tr>
+        <tr><td><span class="mono">valid_out</span></td><td>Output strobe from DUT.</td><td>When high, TB writes <span class="mono">out_I out_Q</span> to file.</td></tr>
+        <tr><td><span class="mono">out_file</span></td><td>File handle for capture.</td><td>Points to <span class="mono">sim_data/rtl_output.txt</span>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <div class="title purple">7) Minimal Debug Order (Signal Trace Priority)</div>
+  <div class="body">
+    <p class="lead">When debugging, inspect these in order to find where data stops:</p>
+    <div class="chips">
+      <div class="chip"><span class="mono">valid_in</span> and <span class="mono">in_I/in_Q</span></div>
+      <div class="chip"><span class="mono">v_win</span>, <span class="mono">fill_cnt</span>, <span class="mono">flushing_active</span></div>
+      <div class="chip"><span class="mono">l1_busy/l1_tick -> v_l1</span></div>
+      <div class="chip"><span class="mono">l2_busy/l2_tick -> v_l2</span></div>
+      <div class="chip"><span class="mono">l3_busy/l3_tick -> valid_out</span></div>
+      <div class="chip"><span class="mono">out_I/out_Q</span> values on valid cycles</div>
+    </div>
+  </div>
+</section>
+
+<div class="foot">Signal dictionary companion to v6/v7/v8 documentation pages</div>
+
+</div>
+</body>
+</html>

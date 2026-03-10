@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RTL Neural Equalizer Design Atlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg-soft: #11131a;
+    --cyan: #00d4ff;
+    --gold: #f5a623;
+    --accent: #ff3366;
+    --green: #39ff14;
+    --purple: #b066ff;
+    --orange: #ff8800;
+    --text: #e0e6ed;
+    --dim: #8a95a5;
+    --border: rgba(255,255,255,0.10);
+    --panel: rgba(25, 25, 35, 0.70);
+    --ok: #2ae6a5;
+    --warn: #ffd166;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    line-height: 1.55;
+    padding: 2rem;
+    background-image:
+      radial-gradient(circle at 10% 10%, rgba(0,212,255,0.11), transparent 26%),
+      radial-gradient(circle at 90% 20%, rgba(176,102,255,0.10), transparent 28%),
+      linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+    background-size: auto, auto, 28px 28px, 28px 28px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.4rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.7rem;
+  }
+
+  header h1 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(1.6rem, 3vw, 2.5rem);
+    color: var(--gold);
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+  }
+
+  header p {
+    color: var(--dim);
+    max-width: 980px;
+    margin: 0.8rem auto 0;
+    font-size: 1.02rem;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  }
+
+  .card-header {
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+    background: rgba(0, 0, 0, 0.40);
+    font-size: 1.05rem;
+  }
+
+  .ch-cyan { border-left: 4px solid var(--cyan); color: var(--cyan); }
+  .ch-gold { border-left: 4px solid var(--gold); color: var(--gold); }
+  .ch-purple { border-left: 4px solid var(--purple); color: var(--purple); }
+  .ch-green { border-left: 4px solid var(--green); color: var(--green); }
+  .ch-orange { border-left: 4px solid var(--orange); color: var(--orange); }
+  .ch-accent { border-left: 4px solid var(--accent); color: var(--accent); }
+
+  .card-body { padding: 1.2rem; }
+
+  .lead {
+    color: #c4cfdb;
+    margin-bottom: 0.95rem;
+    font-size: 0.98rem;
+  }
+
+  .mini-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0.8rem;
+    margin-top: 0.8rem;
+  }
+
+  .pill {
+    border: 1px solid rgba(255,255,255,0.11);
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    padding: 0.68rem 0.8rem;
+    font-size: 0.9rem;
+    color: #d6deea;
+  }
+
+  .pill strong {
+    color: #fff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.88rem;
+  }
+
+  .pipeline {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(140px, 1fr));
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .blk {
+    border: 1px solid rgba(255,255,255,0.12);
+    background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(0,0,0,0.22));
+    border-radius: 10px;
+    padding: 0.72rem;
+    min-height: 102px;
+    position: relative;
+  }
+
+  .blk h4 {
+    font-family: 'Share Tech Mono', monospace;
+    color: #fff;
+    font-size: 0.88rem;
+    margin-bottom: 0.38rem;
+  }
+
+  .blk p {
+    color: var(--dim);
+    font-size: 0.8rem;
+  }
+
+  .arrow {
+    text-align: center;
+    color: var(--cyan);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+  }
+
+  .tag {
+    margin-top: 0.46rem;
+    display: inline-block;
+    padding: 0.2rem 0.48rem;
+    border-radius: 14px;
+    font-size: 0.72rem;
+    font-family: 'Share Tech Mono', monospace;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .tag.cyan { color: var(--cyan); border-color: rgba(0,212,255,0.5); }
+  .tag.green { color: var(--green); border-color: rgba(57,255,20,0.5); }
+  .tag.gold { color: var(--gold); border-color: rgba(245,166,35,0.5); }
+  .tag.purple { color: var(--purple); border-color: rgba(176,102,255,0.55); }
+
+  .table-wrap { overflow-x: auto; margin-top: 0.9rem; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 740px;
+    font-size: 0.86rem;
+  }
+
+  th, td {
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 0.55rem 0.6rem;
+    text-align: left;
+  }
+
+  th {
+    background: rgba(0,0,0,0.35);
+    color: #fff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.82rem;
+    letter-spacing: 0.5px;
+  }
+
+  td { color: #d2d9e4; }
+
+  .mono {
+    font-family: 'Share Tech Mono', monospace;
+    color: #fff;
+    font-size: 0.88rem;
+  }
+
+  .code-block {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 0.9rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.80rem;
+    color: #c9d1d9;
+    overflow-x: auto;
+    margin-top: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .code-block .kw { color: #ff7b72; }
+  .code-block .var { color: #79c0ff; }
+  .code-block .num { color: #a5d6ff; }
+  .code-block .cmt { color: #8b949e; }
+
+  .timeline {
+    margin-top: 0.9rem;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(62px, 1fr));
+    gap: 0.42rem;
+  }
+
+  .tcell {
+    border: 1px solid rgba(255,255,255,0.11);
+    border-radius: 7px;
+    padding: 0.4rem;
+    min-height: 74px;
+    background: rgba(0,0,0,0.25);
+    font-size: 0.72rem;
+  }
+
+  .tcell .c { display: block; color: #fff; font-family: 'Share Tech Mono', monospace; margin-bottom: 0.22rem; }
+  .tcell .v { color: var(--dim); }
+
+  .stage-grid {
+    margin-top: 0.9rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .stage-card {
+    border: 1px solid rgba(255,255,255,0.11);
+    border-radius: 10px;
+    padding: 0.85rem;
+    background: rgba(0,0,0,0.26);
+  }
+
+  .stage-card h4 {
+    font-family: 'Share Tech Mono', monospace;
+    margin-bottom: 0.4rem;
+  }
+
+  .stage-card ul {
+    list-style: none;
+    margin-top: 0.4rem;
+    color: var(--dim);
+    font-size: 0.84rem;
+  }
+
+  .stage-card li { margin-bottom: 0.24rem; }
+
+  .flow-grid {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .flow-step {
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    padding: 0.72rem;
+    position: relative;
+  }
+
+  .flow-step h5 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.82rem;
+    margin-bottom: 0.35rem;
+    color: #fff;
+  }
+
+  .flow-step p {
+    font-size: 0.8rem;
+    color: var(--dim);
+  }
+
+  .note {
+    margin-top: 0.9rem;
+    border: 1px dashed rgba(245,166,35,0.55);
+    background: rgba(245,166,35,0.08);
+    color: #ffdca1;
+    border-radius: 8px;
+    padding: 0.66rem 0.76rem;
+    font-size: 0.85rem;
+  }
+
+  .foot {
+    text-align: center;
+    margin-top: 1.1rem;
+    color: #7f8a98;
+    font-size: 0.82rem;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  @media (max-width: 980px) {
+    body { padding: 1rem; }
+    .pipeline { grid-template-columns: 1fr; }
+    .arrow { transform: rotate(90deg); }
+    .timeline { grid-template-columns: repeat(4, minmax(70px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>RTL Neural Equalizer Design Atlas</h1>
+  <p>
+    Detailed design documentation for the current time-multiplexed pipeline in <span class="mono">neural_eq_top.sv</span>,
+    including dataflow blocks, control timing, ROM packing, and script-driven verification.
+  </p>
+</header>
+
+<div class="container">
+
+  <section class="card">
+    <div class="card-header ch-cyan">0. Executive Summary</div>
+    <div class="card-body">
+      <p class="lead">
+        The design implements a compact 3-layer neural equalizer using shared Triple-MAC compute lanes, staged valid handshakes,
+        and fixed-point Q1.14 arithmetic. Throughput is symbol-paced by the testbench at one symbol every 6 clocks.
+      </p>
+      <div class="mini-grid">
+        <div class="pill"><strong>Input:</strong> Signed 16-bit <span class="mono">in_I</span> and <span class="mono">in_Q</span>, valid-gated by <span class="mono">valid_in</span>.</div>
+        <div class="pill"><strong>Window:</strong> 5 complex taps (10 real scalar values).</div>
+        <div class="pill"><strong>L1:</strong> 10 -> 32, 4 ticks.</div>
+        <div class="pill"><strong>L2:</strong> 32 -> 32, split A/B halves, 6 ticks.</div>
+        <div class="pill"><strong>L3:</strong> 32 -> 2, split A/B halves, 6 ticks.</div>
+        <div class="pill"><strong>Output:</strong> Saturated 16-bit <span class="mono">out_I,out_Q</span> with pulse <span class="mono">valid_out</span>.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header ch-gold">1. Top-Level Block Diagram</div>
+    <div class="card-body">
+      <p class="lead">The pipeline uses pulse-style valid propagation: <span class="mono">valid_in -> v_win -> v_l1 -> v_l2 -> valid_out</span>.</p>
+      <div class="pipeline">
+        <div class="blk">
+          <h4>Smart Input Window</h4>
+          <p>Maintains 5-sample I/Q shift registers, window fill control, and auto-flush injection with <span class="mono">INIT_VAL</span>.</p>
+          <span class="tag cyan">window valid: v_win</span>
+        </div>
+        <div class="arrow">==&gt;</div>
+        <div class="blk">
+          <h4>Layer 1 Engine</h4>
+          <p>10 inputs to 32 neurons in 4 ticks via triple MAC packing and per-neuron accumulation.</p>
+          <span class="tag green">v_l1 pulse</span>
+        </div>
+        <div class="arrow">==&gt;</div>
+        <div class="blk">
+          <h4>Layer 2 Engine</h4>
+          <p>32 inputs split into A/B (16+16), both halves computed in parallel each tick, 6 ticks total.</p>
+          <span class="tag purple">v_l2 pulse</span>
+        </div>
+      </div>
+      <div class="pipeline" style="margin-top:0.7rem;grid-template-columns:1fr 70px 1fr;">
+        <div class="blk">
+          <h4>Layer 3 Engine</h4>
+          <p>32 to 2 output neurons, same A/B partition strategy as L2, no ReLU at final output.</p>
+          <span class="tag gold">valid_out pulse</span>
+        </div>
+        <div class="arrow">==&gt;</div>
+        <div class="blk">
+          <h4>Output Logger</h4>
+          <p>Testbench writes lines only when <span class="mono">valid_out</span> is high: <span class="mono">"%d %d"</span>.</p>
+          <span class="tag cyan">rtl_output.txt</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header ch-purple">2. Smart Input Window and Flush Logic</div>
+    <div class="card-body">
+      <p class="lead">
+        The front-end waits until enough symbols are present, then emits window-valid pulses. During long silence,
+        it automatically pushes <span class="mono">INIT_VAL</span> into the window to drain residual pipeline state.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Signal</th>
+              <th>Role</th>
+              <th>Behavior</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">fill_cnt</td>
+              <td>Window warm-up</td>
+              <td>Counts initial valid symbols; first normal <span class="mono">v_win</span> occurs when third symbol arrives.</td>
+            </tr>
+            <tr>
+              <td class="mono">silence_timer</td>
+              <td>Idle detect</td>
+              <td>Increments only after warm-up, when no valid input and not already flushing.</td>
+            </tr>
+            <tr>
+              <td class="mono">flushing_active</td>
+              <td>Flush mode gate</td>
+              <td>Starts after timeout and injects deterministic samples to complete pending computations.</td>
+            </tr>
+            <tr>
+              <td class="mono">flush_cnt</td>
+              <td>Flush phase index</td>
+              <td>Drives two window pushes (at count 0 and 6) then exits flush mode.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-block">
+<span class="kw">if</span> (<span class="var">valid_in</span>) <span class="var">silence_timer</span> &lt;= <span class="num">0</span>;
+<span class="kw">else if</span> (<span class="var">fill_cnt</span> &gt;= <span class="num">3</span> &amp;&amp; !<span class="var">flushing_active</span>) <span class="var">silence_timer</span>++;
+...
+<span class="kw">if</span> (<span class="var">flush_cnt</span> == <span class="num">0</span> || <span class="var">flush_cnt</span> == <span class="num">6</span>) <span class="var">v_win</span> &lt;= <span class="num">1</span>;
+      </div>
+
+      <div class="note">
+        Why this matters: file-level output alignment becomes cleaner because tail symbols are intentionally flushed instead of being silently dropped.
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header ch-green">3. Per-Layer Compute Diagram (Block-Like View)</div>
+    <div class="card-body">
+      <p class="lead">Each layer uses an explicit FSM style: <span class="mono">idle -> busy/tick sweep -> fire valid</span>.</p>
+      <div class="stage-grid">
+        <div class="stage-card">
+          <h4 style="color:var(--green);">Layer 1 (10 -> 32, 4 ticks)</h4>
+          <ul>
+            <li>Latch 5 I and 5 Q values when <span class="mono">v_win</span> pulses.</li>
+            <li>Tick 1..4 select 3 scalar inputs per cycle via MUX case logic.</li>
+            <li>Per-neuron accumulator computes weighted sum then applies bias and ReLU.</li>
+            <li>Fires <span class="mono">v_l1</span> once at tick 4 completion.</li>
+          </ul>
+        </div>
+        <div class="stage-card">
+          <h4 style="color:var(--purple);">Layer 2 (32 -> 32, 6 ticks)</h4>
+          <ul>
+            <li>Input vector split into A and B halves (16 + 16 scalars).</li>
+            <li>A and B halves are processed in parallel each tick (6 products total per neuron per tick).</li>
+            <li>No latency doubling from split; still 6 ticks end-to-end.</li>
+            <li>Re-latch support allows back-to-back <span class="mono">v_l1</span> handoff without dead cycle.</li>
+          </ul>
+        </div>
+        <div class="stage-card">
+          <h4 style="color:var(--gold);">Layer 3 (32 -> 2, 6 ticks)</h4>
+          <ul>
+            <li>Same split-A/B template as Layer 2.</li>
+            <li>Computes two output neurons: I and Q.</li>
+            <li>Final stage is saturation-only (no ReLU).</li>
+            <li>Asserts <span class="mono">valid_out</span> on tick 6 completion.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Layer</th>
+              <th>Input Width</th>
+              <th>Ticks</th>
+              <th>Activation</th>
+              <th>Output Valid Pulse</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>L1</td>
+              <td>10 scalars (I/Q window)</td>
+              <td>4</td>
+              <td>ReLU + Saturation</td>
+              <td><span class="mono">v_l1</span></td>
+            </tr>
+            <tr>
+              <td>L2</td>
+              <td>32 scalars (split 16+16)</td>
+              <td>6</td>
+              <td>ReLU + Saturation</td>
+              <td><span class="mono">v_l2</span></td>
+            </tr>
+            <tr>
+              <td>L3</td>
+              <td>32 scalars (split 16+16)</td>
+              <td>6</td>
+              <td>Saturation only</td>
+              <td><span class="mono">valid_out</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header ch-accent">4. Cycle-Level Timeline for First Output</div>
+    <div class="card-body">
+      <p class="lead">
+        For the provided testbench pacing (<span class="mono">valid_in</span> every 6 cycles), first useful output arrives after window warm-up and three compute stages.
+      </p>
+
+      <div class="timeline">
+        <div class="tcell"><span class="c">C0</span><span class="v">1st valid_in</span></div>
+        <div class="tcell"><span class="c">C1..C5</span><span class="v">gap cycles</span></div>
+        <div class="tcell"><span class="c">C6</span><span class="v">2nd valid_in</span></div>
+        <div class="tcell"><span class="c">C7..C11</span><span class="v">gap cycles</span></div>
+        <div class="tcell"><span class="c">C12</span><span class="v">3rd valid_in, v_win</span></div>
+        <div class="tcell"><span class="c">C13..C16</span><span class="v">L1 ticks 1..4</span></div>
+        <div class="tcell"><span class="c">C17</span><span class="v">v_l1 pulse</span></div>
+        <div class="tcell"><span class="c">C18..C23</span><span class="v">L2 ticks 1..6</span></div>
+        <div class="tcell"><span class="c">C24</span><span class="v">v_l2 pulse</span></div>
+        <div class="tcell"><span class="c">C25..C30</span><span class="v">L3 ticks 1..6</span></div>
+        <div class="tcell"><span class="c">C31</span><span class="v">first valid_out</span></div>
+        <div class="tcell"><span class="c">C32+</span><span class="v">steady stream</span></div>
+      </div>
+
+      <div class="note">
+        If valid were continuous every clock instead of every 6 clocks, the first-output delay drops significantly because warm-up symbols arrive sooner.
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header ch-orange">5. ROM Packing Diagram (Triple-Width 48-bit)</div>
+    <div class="card-body">
+      <p class="lead">
+        Weight memories are packed as three signed 16-bit coefficients per line. The order is preserved as <span class="mono">w0, w1, w2</span>.
+      </p>
+
+      <div class="code-block">
+<span class="cmt">// Example packed row from hex file (12 hex chars = 48 bits)</span>
+<span class="var">row_hex</span> = "0A2B11FFC012";
+
+<span class="cmt">// RTL unpacking convention</span>
+<span class="var">w0</span> = <span class="var">w_bus</span>[<span class="num">47:32</span>]
+<span class="var">w1</span> = <span class="var">w_bus</span>[<span class="num">31:16</span>]
+<span class="var">w2</span> = <span class="var">w_bus</span>[<span class="num">15:0</span>]
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Layer File</th>
+              <th>Packed ROMs</th>
+              <th>Cycles</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="mono">L1_W.hex</span></td>
+              <td>Single packed table</td>
+              <td>4</td>
+              <td>10 inputs consumed in groups of 3 with final padding.</td>
+            </tr>
+            <tr>
+              <td><span class="mono">L2A_W.hex/L2B_W.hex</span></td>
+              <td>Two half tables</td>
+              <td>6</td>
+              <td>32 input split keeps fan-in manageable while preserving throughput.</td>
+            </tr>
+            <tr>
+              <td><span class="mono">L3A_W.hex/L3B_W.hex</span></td>
+              <td>Two half tables</td>
+              <td>6</td>
+              <td>Same compute skeleton reused for output layer.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header ch-cyan">6. End-to-End Tool Flow (Prep -> Sim -> Verify)</div>
+    <div class="card-body">
+      <p class="lead">The Makefile and Python scripts form a reproducible loop from model dumps to constellation quality metrics.</p>
+
+      <div class="flow-grid">
+        <div class="flow-step">
+          <h5>Step 1: HEX Generation</h5>
+          <p><span class="mono">scripts/01_prep_hex.py</span> loads txt arrays, quantizes to 16-bit hex, packs triple-weights, and writes stimulus stream.</p>
+        </div>
+        <div class="flow-step">
+          <h5>Step 2: Compile</h5>
+          <p><span class="mono">iverilog -g2012</span> compiles <span class="mono">tb/tb_neural_eq_top.sv</span> with all RTL sources.</p>
+        </div>
+        <div class="flow-step">
+          <h5>Step 3: Run</h5>
+          <p><span class="mono">vvp sim_data/sim.vvp</span> executes simulation and writes <span class="mono">sim_data/rtl_output.txt</span>.</p>
+        </div>
+        <div class="flow-step">
+          <h5>Step 4: Verify</h5>
+          <p><span class="mono">scripts/02_verify.py</span> auto-aligns delay, computes MSE, SER, BER, and plots constellation overlays.</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+<span class="kw">all</span>: <span class="var">prep</span> <span class="var">compile</span> <span class="var">sim</span> <span class="var">verify</span> <span class="var">wave</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header ch-gold">7. Practical Debug Checklist</div>
+    <div class="card-body">
+      <div class="mini-grid">
+        <div class="pill"><strong>Mismatch at startup:</strong> Confirm warm-up behavior and first <span class="mono">valid_out</span> index.</div>
+        <div class="pill"><strong>Wrong amplitudes:</strong> Re-check Q1.14 scaling and <span class="mono">VOLT_MULTIPLIER</span> in verification.</div>
+        <div class="pill"><strong>Large MSE:</strong> Inspect weight ordering in packed 48-bit rows.</div>
+        <div class="pill"><strong>Missing tail symbols:</strong> Verify flush timeout and flush injection pulses.</div>
+        <div class="pill"><strong>Output clipping:</strong> Check saturation boundaries +32767/-32768.</div>
+        <div class="pill"><strong>Timing confusion:</strong> Trace pulse chain <span class="mono">v_win -> v_l1 -> v_l2 -> valid_out</span>.</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="foot">Document target: RTL_multiplexed_pipelined current top-level architecture</div>
+
+</body>
+</html>

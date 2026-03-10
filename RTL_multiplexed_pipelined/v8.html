@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code-to-Block Map (Simple Guide)</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --panel: rgba(25, 25, 35, 0.72);
+    --text: #e0e6ed;
+    --dim: #9aa6b5;
+    --border: rgba(255,255,255,0.10);
+    --cyan: #00d4ff;
+    --gold: #f5a623;
+    --green: #39ff14;
+    --purple: #b066ff;
+    --orange: #ff8800;
+    --accent: #ff3366;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Exo 2', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    padding: 1.2rem;
+    background-image:
+      linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .wrap { max-width: 1100px; margin: 0 auto; }
+
+  header {
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(1.3rem, 3vw, 2rem);
+    color: var(--gold);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .sub {
+    color: var(--dim);
+    margin-top: 0.4rem;
+    font-size: 0.95rem;
+  }
+
+  .section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+
+  .title {
+    font-family: 'Share Tech Mono', monospace;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,0.35);
+  }
+
+  .title.cyan { color: var(--cyan); border-left: 4px solid var(--cyan); }
+  .title.green { color: var(--green); border-left: 4px solid var(--green); }
+  .title.purple { color: var(--purple); border-left: 4px solid var(--purple); }
+  .title.orange { color: var(--orange); border-left: 4px solid var(--orange); }
+  .title.accent { color: var(--accent); border-left: 4px solid var(--accent); }
+
+  .body { padding: 0.95rem; }
+
+  .lead { color: #ced8e4; margin-bottom: 0.8rem; }
+
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.55rem;
+  }
+
+  .node {
+    border: 1px solid rgba(255,255,255,0.11);
+    border-radius: 9px;
+    background: rgba(255,255,255,0.03);
+    padding: 0.6rem;
+  }
+
+  .node h4 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+    color: #fff;
+  }
+
+  .node p { font-size: 0.8rem; color: var(--dim); }
+
+  .mono { font-family: 'Share Tech Mono', monospace; color: #fff; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    min-width: 720px;
+  }
+
+  .table-wrap { overflow-x: auto; }
+
+  th, td {
+    border: 1px solid rgba(255,255,255,0.11);
+    text-align: left;
+    padding: 0.5rem;
+    vertical-align: top;
+  }
+
+  th {
+    background: rgba(0,0,0,0.38);
+    font-family: 'Share Tech Mono', monospace;
+    color: #fff;
+    font-size: 0.8rem;
+  }
+
+  td { color: #d6deea; }
+
+  .code {
+    margin-top: 0.6rem;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    background: #0d1117;
+    padding: 0.7rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    color: #c9d1d9;
+    overflow-x: auto;
+  }
+
+  .code .kw { color: #ff7b72; }
+  .code .var { color: #79c0ff; }
+  .code .num { color: #a5d6ff; }
+  .code .cmt { color: #8b949e; }
+
+  .tips {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.55rem;
+  }
+
+  .tip {
+    border: 1px dashed rgba(245,166,35,0.45);
+    background: rgba(245,166,35,0.09);
+    border-radius: 8px;
+    padding: 0.55rem;
+    font-size: 0.82rem;
+    color: #ffdca1;
+  }
+
+  .foot {
+    text-align: center;
+    color: #7e8896;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    margin-top: 0.7rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Simple Code-to-Block Map</h1>
+  <p class="sub">A quick intuitive guide: "when you see this code section, it means this hardware function".</p>
+</header>
+
+<section class="section">
+  <div class="title cyan">A. One-Line Mental Model</div>
+  <div class="body">
+    <p class="lead">
+      <span class="mono">valid_in</span> enters a smart window, then three compute blocks (L1, L2, L3), and finally emits
+      <span class="mono">valid_out</span> with <span class="mono">out_I/out_Q</span>.
+    </p>
+    <div class="flow">
+      <div class="node"><h4>Input Window</h4><p>Build 5-tap context, manage warm-up and flush.</p></div>
+      <div class="node"><h4>L1 Engine</h4><p>10 -> 32 with 4-tick MAC sweep.</p></div>
+      <div class="node"><h4>L2 Engine</h4><p>32 -> 32, A/B halves run in parallel over 6 ticks.</p></div>
+      <div class="node"><h4>L3 Engine</h4><p>32 -> 2, final saturated outputs over 6 ticks.</p></div>
+      <div class="node"><h4>Output Write</h4><p>Testbench stores only cycles where valid_out=1.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="title green">B. Main RTL Map (`rtl/neural_eq_top.sv`)</div>
+  <div class="body">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Code Region (by comments/signals)</th>
+            <th>Think of it as...</th>
+            <th>What it does</th>
+            <th>Main outputs from this region</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="mono">1. SMART INPUT WINDOW</span><br>signals: <span class="mono">win_I/win_Q, fill_cnt, silence_timer, flushing_active</span></td>
+            <td>Input preprocessor</td>
+            <td>Collects context, decides when window is valid, injects flush values on long silence.</td>
+            <td><span class="mono">v_win</span>, updated window taps</td>
+          </tr>
+          <tr>
+            <td><span class="mono">2. LAYER 1</span><br>signals: <span class="mono">l1_tick, l1_busy, l1_latched_*</span></td>
+            <td>Feature extractor</td>
+            <td>Runs 4-cycle MAC schedule over 10 scalar inputs to generate 32 activations.</td>
+            <td><span class="mono">l1_out[0:31], v_l1</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono">3. LAYER 2</span><br>signals: <span class="mono">l2_tick, l2_busy, L2A/L2B ROMs</span></td>
+            <td>Hidden transform</td>
+            <td>Processes first 16 and second 16 inputs in parallel each tick (not sequential halves).</td>
+            <td><span class="mono">l2_out[0:31], v_l2</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono">4. LAYER 3</span><br>signals: <span class="mono">l3_tick, l3_busy, L3A/L3B ROMs</span></td>
+            <td>Output head</td>
+            <td>Collapses 32 features into 2 outputs; applies saturation and emits final valid pulse.</td>
+            <td><span class="mono">out_I, out_Q, valid_out</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="title purple">C. Control Logic Map (FSM-like always_ff blocks)</div>
+  <div class="body">
+    <p class="lead">If you are debugging timing, focus on these three counters first: <span class="mono">l1_tick</span>, <span class="mono">l2_tick</span>, <span class="mono">l3_tick</span>.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Trigger block</th>
+            <th>Start condition</th>
+            <th>Done condition</th>
+            <th>Valid pulse generated</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="mono">L1 always_ff</span></td>
+            <td><span class="mono">v_win && !l1_busy</span></td>
+            <td><span class="mono">l1_tick == 4</span></td>
+            <td><span class="mono">v_l1</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono">L2 always_ff</span></td>
+            <td><span class="mono">v_l1 && !l2_busy</span></td>
+            <td><span class="mono">l2_tick == 6</span></td>
+            <td><span class="mono">v_l2</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono">L3 always_ff</span></td>
+            <td><span class="mono">v_l2 && !l3_busy</span></td>
+            <td><span class="mono">l3_tick == 6</span></td>
+            <td><span class="mono">valid_out</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code">
+<span class="cmt">// Use this as your timing breadcrumb chain</span>
+<span class="kw">valid_in</span> -> <span class="var">v_win</span> -> <span class="var">v_l1</span> -> <span class="var">v_l2</span> -> <span class="var">valid_out</span>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="title orange">D. Data Path Map (always_comb and generate loops)</div>
+  <div class="body">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Pattern in code</th>
+            <th>Block/function meaning</th>
+            <th>How to read it quickly</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="mono">case (l*_tick)</span> selecting <span class="mono">in1,in2,in3</span></td>
+            <td>Input MUX scheduler</td>
+            <td>"Which 3 scalar inputs are fed this cycle?"</td>
+          </tr>
+          <tr>
+            <td><span class="mono">w_bus = ROM[(i*cycles)+(tick-1)]</span></td>
+            <td>Weight fetch address generator</td>
+            <td>"Neuron i, current phase tick -> fetch matching packed weights"</td>
+          </tr>
+          <tr>
+            <td><span class="mono">assign p1..p6 = in*weight</span></td>
+            <td>Parallel multiply bank</td>
+            <td>Immediate combinational products for this cycle.</td>
+          </tr>
+          <tr>
+            <td><span class="mono">acc &lt;= acc + ...</span></td>
+            <td>MAC accumulator</td>
+            <td>Running partial sum across the current layer ticks.</td>
+          </tr>
+          <tr>
+            <td><span class="mono">tmp=(final_acc>>>14)+bias</span> + clamp</td>
+            <td>Fixed-point postprocess</td>
+            <td>Scale back, add bias, then ReLU/saturation depending on layer.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="title accent">E. Testbench Map (`tb/tb_neural_eq_top.sv`)</div>
+  <div class="body">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>TB code area</th>
+            <th>Simple meaning</th>
+            <th>Why it exists</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="mono">for (i=0;i&lt;4000;i++) stimuli_mem[i]=0;</span></td>
+            <td>Memory clear</td>
+            <td>Prevents unknown X values if hex file is shorter than memory size.</td>
+          </tr>
+          <tr>
+            <td><span class="mono">$readmemh("hex_files/input_stimuli.hex", ...)</span></td>
+            <td>Load stimulus vector</td>
+            <td>Feeds real IQ samples generated by prep script.</td>
+          </tr>
+          <tr>
+            <td><span class="mono">valid_in=1; @(posedge clk); valid_in=0; repeat(5)</span></td>
+            <td>One-symbol-every-6-clocks pacing</td>
+            <td>Matches your intended bottleneck schedule.</td>
+          </tr>
+          <tr>
+            <td><span class="mono">if (valid_out) $fdisplay(...)</span></td>
+            <td>Output capture gate</td>
+            <td>Writes only valid final symbols to output file.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="title cyan">F. Fast Debug Rules (Intuitive)</div>
+  <div class="body">
+    <div class="tips">
+      <div class="tip">No output? Check if <span class="mono">v_win</span> ever pulses first.</div>
+      <div class="tip">Wrong timing? Trace pulse order: <span class="mono">v_win -> v_l1 -> v_l2 -> valid_out</span>.</div>
+      <div class="tip">Wrong amplitude? Verify weight order in packed 48-bit ROM words.</div>
+      <div class="tip">Tail mismatch? Confirm flush timeout and drain cycles are long enough.</div>
+      <div class="tip">Random garbage at start? Re-check memory init and reset sequence.</div>
+    </div>
+  </div>
+</section>
+
+<div class="foot">Companion page for v6/v7 style documentation - simplified code mapping view</div>
+
+</div>
+</body>
+</html>
