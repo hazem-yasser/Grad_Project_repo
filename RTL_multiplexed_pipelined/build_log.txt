@@ -1,0 +1,41 @@
+==> Restructuring TXT to HEX for Quad-MAC...
+cd scripts && python3 01_prep_hex.py
+=== 1. PROCESSING WEIGHTS (FIXED ORDERING) ===
+ -> Generated L1_W.hex
+ -> Generated L2A_W.hex
+ -> Generated L2B_W.hex
+ -> Generated L3A_W.hex
+ -> Generated L3B_W.hex
+ -> Generated L1_b.hex
+ -> Generated L2_b.hex
+ -> Generated L3_b.hex
+=== 2. PROCESSING STIMULI ===
+ -> Generated input_stimuli.hex: 4000 lines.
+==> Compiling SystemVerilog...
+iverilog -g2012 -o sim_data/sim.vvp tb/tb_neural_eq_top.sv rtl/*.sv
+==> Running Simulation...
+vvp sim_data/sim.vvp
+VCD info: dumpfile sim_data/debug.vcd opened for output.
+--- Starting Data Stream (2000 Symbols) ---
+--- Waiting for Auto-Flush... ---
+--- Simulation Finished ---
+tb/tb_neural_eq_top.sv:55: $finish called at 122095000 (1ps)
+==> Plotting Results...
+cd scripts && python3 02_verify.py
+=== VERIFICATION: RTL vs TARGET ===
+ValueError: could not convert string to float: 'x'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/hazemysr/Desktop/Grad_Project/RTL_multiplexed_pipelined/scripts/02_verify.py", line 16, in <module>
+    rtl_int = np.loadtxt("../sim_data/rtl_output.txt")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.11/site-packages/numpy/lib/npyio.py", line 1373, in loadtxt
+    arr = _read(fname, dtype=dtype, comment=comment, delimiter=delimiter,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.11/site-packages/numpy/lib/npyio.py", line 1016, in _read
+    arr = _load_from_filelike(
+          ^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string 'x' to float64 at row 0, column 1.
+make: *** [verify] Error 1
