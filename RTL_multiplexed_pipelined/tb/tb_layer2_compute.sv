@@ -8,6 +8,10 @@ module tb_layer2_compute ();
     wire signed [15:0] l2_out [0:31];
     wire valid_out;
 
+    int errors = 0;
+    int expected_outputs = 0;
+    int seen_outputs = 0;
+
     layer2_compute DUT (
         .clk(clk), .rst_n(rst_n),
         .valid_in(valid_in),
@@ -25,35 +29,63 @@ module tb_layer2_compute ();
         forever #5 clk = ~clk;
     end
 
-    initial begin
-        rst_n = 0; valid_in = 0;
-        for (int i = 0; i < 32; i++) l1_out[i] = 0;
-        #20 rst_n = 1;
-        
-        // Test: Send simple test vectors
-        repeat (10) begin
+    task automatic send_vector(input int seed);
+        begin
+            for (int i = 0; i < 32; i++) begin
+                l1_out[i] = (seed + i) - 64;
+            end
+            valid_in = 1;
             @(posedge clk);
-            valid_in <= 1;
-            // Simple ramp pattern
-            for (int i = 0; i < 32; i++) l1_out[i] <= i - 16;
+            #1;
+            valid_in = 0;
+            // Layer2 consumes 6 ticks
+            repeat (5) @(posedge clk);
+            expected_outputs++;
         end
-        
-        valid_in = 0;
-        
-        // Wait for pipeline and outputs
-        repeat (100) begin
-            @(posedge clk);
-            if (valid_out) begin
-                $display("[%0t] L2 Output: out[0]=%d out[31]=%d (should have ReLU)", 
-                         $time, l2_out[0], l2_out[31]);
-                if (l2_out[0] === 16'hxxxx || l2_out[31] === 16'hxxxx) begin
-                    $display("ERROR: Undefined output values detected!");
+    endtask
+
+    always @(posedge clk) begin
+        #1;
+        if (valid_out) begin
+            seen_outputs++;
+            for (int i = 0; i < 32; i++) begin
+                if (^l2_out[i] === 1'bx) begin
+                    $display("ERROR: L2 output[%0d] is X at t=%0t", i, $time);
+                    errors++;
+                end
+                if ($signed(l2_out[i]) < 0) begin
+                    $display("ERROR: L2 output[%0d] is negative (%0d), ReLU expected", i, $signed(l2_out[i]));
+                    errors++;
                 end
             end
         end
-        
-        $display("===== LAYER2_COMPUTE UNIT TEST COMPLETE =====");
-        $finish;
+    end
+
+    initial begin
+        rst_n = 0; valid_in = 0;
+        for (int i = 0; i < 32; i++) l1_out[i] = 0;
+        repeat (3) @(posedge clk);
+        rst_n = 1;
+        @(posedge clk);
+
+        send_vector(10);
+        send_vector(70);
+        send_vector(130);
+        send_vector(190);
+
+        repeat (20) @(posedge clk);
+
+        if (seen_outputs != expected_outputs) begin
+            $display("ERROR: L2 valid_out count mismatch. expected=%0d seen=%0d", expected_outputs, seen_outputs);
+            errors++;
+        end
+
+        if (errors == 0) begin
+            $display("PASS: LAYER2_COMPUTE unit test passed (outputs=%0d)", seen_outputs);
+            $finish;
+        end else begin
+            $fatal(1, "FAIL: LAYER2_COMPUTE unit test failed with %0d errors", errors);
+        end
     end
 
 endmodule
