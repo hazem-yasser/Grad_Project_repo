@@ -12,9 +12,18 @@ if not os.path.exists("../sim_data/rtl_output.txt"):
     print("[ERROR] rtl_output.txt not found. Run simulation first!")
     exit(1)
 
+if not os.path.exists("../sim_data/input_stimuli.txt"):
+    print("[ERROR] input_stimuli.txt not found.")
+    exit(1)
+
 # 1. LOAD DATA
 rtl_int = np.loadtxt("../sim_data/rtl_output.txt")
 target_volt = np.loadtxt("../sim_data/target_voltages.txt")
+input_stream = np.loadtxt("../sim_data/input_stimuli.txt")
+
+# input_stimuli.txt is interleaved: I0, Q0, I1, Q1, ...
+input_iq = input_stream.reshape(-1, 2)
+input_volt = (input_iq / SCALE) * VOLT_MULTIPLIER
 
 # Check Lengths (Should be exact match now!)
 if len(rtl_int) != len(target_volt):
@@ -103,24 +112,21 @@ print(f"Bit Errors    : {bit_errors} / {total_bits}")
 print(f"BER (Gray)    : {ber:.6e}")
 print("-" * 30)
 
-# 5. PLOTTING
+# 5. PLOTTING (Input vs Output only)
 plt.figure(figsize=(12, 5))
 
 plt.subplot(1, 2, 1)
-plt.scatter(aligned_t.real, aligned_t.imag, c='blue', s=50, alpha=0.2, label='Target')
-plt.scatter(aligned_r.real, aligned_r.imag, c='lime', s=15, label='RTL Output')
-plt.title(f"16-QAM Constellation\nMSE={best_mse:.5f}  SER={ser:.2e}  BER={ber:.2e}")
+plt.scatter(input_volt[:, 0], input_volt[:, 1], c='blue', s=4, alpha=0.15)
+plt.title("Input Constellation (Stimuli)")
 plt.xlabel("In-Phase (I)")
 plt.ylabel("Quadrature (Q)")
 plt.grid(True, alpha=0.3)
-plt.legend()
 
 plt.subplot(1, 2, 2)
-plt.scatter(aligned_t.real, aligned_t.imag, c='blue', s=100, alpha=0.2)
-plt.scatter(aligned_r.real, aligned_r.imag, c='red', s=20)
-plt.xlim(2, 4)
-plt.ylim(2, 4)
-plt.title("Zoomed Cluster (+3V, +3V)")
+plt.scatter(aligned_r.real, aligned_r.imag, c='lime', s=20, alpha=0.8)
+plt.title(f"RTL Output Constellation\nMSE={best_mse:.5f}  SER={ser:.2e}  BER={ber:.2e}")
+plt.xlabel("In-Phase (I)")
+plt.ylabel("Quadrature (Q)")
 plt.grid(True, alpha=0.3)
 
 plt.tight_layout()

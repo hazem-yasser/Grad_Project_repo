@@ -22,7 +22,7 @@ sim: compile
 
 verify:
 	@echo "==> Plotting Results..."
-	cd scripts && python3 02_verify.py
+	cd scripts && python3 02_verify.py	# do 03_verify.py if you want to plot the stimuli
 
 wave:
 	surfer $(VCD_OUT) &
