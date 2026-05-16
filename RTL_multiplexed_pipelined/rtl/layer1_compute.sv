@@ -15,12 +15,6 @@ module layer1_compute (
     logic [2:0] l1_tick;
     logic l1_busy;
 
-    logic [47:0] L1_W_ROM [0:127]; 
-    logic signed [15:0] L1_b_ROM [0:31];
-    initial begin
-        $readmemh("hex_files/L1_W.hex", L1_W_ROM);
-        $readmemh("hex_files/L1_b.hex", L1_b_ROM);
-    end
 
     // STRICT FSM: Idle -> Latch -> Compute (4) -> Fire
     always_ff @(posedge clk or negedge rst_n) begin
@@ -63,7 +57,24 @@ module layer1_compute (
     generate
         for (i = 0; i < 32; i++) begin : L1_MAC
             logic [47:0] w_bus;
-            assign w_bus = (l1_busy) ? L1_W_ROM[(i*4) + (l1_tick-1)] : 48'd0;
+            logic [47:0] w_bus_raw;
+            logic [6:0] w_addr;
+            logic [4:0] b_addr;
+
+            assign w_addr = 7'((i*4) + int'(l1_tick) - 1);
+            assign b_addr = 5'(i);
+
+            rom_L1_W u_rom_w (
+                .addr(w_addr),
+                .data(w_bus_raw)
+            );
+            assign w_bus = (l1_busy) ? w_bus_raw : 48'd0;
+
+            logic signed [15:0] b_raw;
+            rom_L1_b u_rom_b (
+                .addr(b_addr),
+                .data(b_raw)
+            );
             
             logic signed [39:0] acc;
             logic signed [31:0] p1, p2, p3;
@@ -85,7 +96,7 @@ module layer1_compute (
                     logic signed [39:0] final_acc;
                     logic signed [39:0] tmp;
                     final_acc = (p1 + p2) + (p3 + acc);
-                    tmp = (final_acc >>> 14) + L1_b_ROM[i];
+                    tmp = (final_acc >>> 14) + b_raw;
                     if (tmp < 0) tmp = 0; // ReLU
                     if (tmp > 32767) l1_out[i] <= 32767;
                     else if (tmp < -32768) l1_out[i] <= -32768;

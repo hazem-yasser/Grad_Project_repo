@@ -12,7 +12,7 @@ UNIT_TB_L1     = tb/tb_layer1_compute.sv
 UNIT_TB_L2     = tb/tb_layer2_compute.sv
 UNIT_TB_L3     = tb/tb_layer3_compute.sv
 
-all: prep compile sim verify wave
+all: prep compile sim verify unit wave
 
 prep:
 	@echo "==> Restructuring TXT to HEX for Quad-MAC..."
@@ -45,19 +45,19 @@ unit-input:
 unit-l1:
 	@echo "==> UNIT: layer1_compute"
 	@mkdir -p $(UNIT_DIR)
-	iverilog -g2012 -o $(UNIT_DIR)/tb_layer1_compute.vvp $(UNIT_TB_L1) rtl/layer1_compute.sv
+	iverilog -g2012 -o $(UNIT_DIR)/tb_layer1_compute.vvp $(UNIT_TB_L1) rtl/layer1_compute.sv rtl/rom_L1_W.sv rtl/rom_L1_b.sv
 	bash -o pipefail -c 'vvp $(UNIT_DIR)/tb_layer1_compute.vvp | tee $(UNIT_DIR)/tb_layer1_compute.log'
 
 unit-l2:
 	@echo "==> UNIT: layer2_compute"
 	@mkdir -p $(UNIT_DIR)
-	iverilog -g2012 -o $(UNIT_DIR)/tb_layer2_compute.vvp $(UNIT_TB_L2) rtl/layer2_compute.sv
+	iverilog -g2012 -o $(UNIT_DIR)/tb_layer2_compute.vvp $(UNIT_TB_L2) rtl/layer2_compute.sv rtl/rom_L2A_W.sv rtl/rom_L2B_W.sv rtl/rom_L2_b.sv
 	bash -o pipefail -c 'vvp $(UNIT_DIR)/tb_layer2_compute.vvp | tee $(UNIT_DIR)/tb_layer2_compute.log'
 
 unit-l3:
 	@echo "==> UNIT: layer3_compute"
 	@mkdir -p $(UNIT_DIR)
-	iverilog -g2012 -o $(UNIT_DIR)/tb_layer3_compute.vvp $(UNIT_TB_L3) rtl/layer3_compute.sv
+	iverilog -g2012 -o $(UNIT_DIR)/tb_layer3_compute.vvp $(UNIT_TB_L3) rtl/layer3_compute.sv rtl/rom_L3A_W.sv rtl/rom_L3B_W.sv rtl/rom_L3_b.sv
 	bash -o pipefail -c 'vvp $(UNIT_DIR)/tb_layer3_compute.vvp | tee $(UNIT_DIR)/tb_layer3_compute.log'
 
 clean-debug:

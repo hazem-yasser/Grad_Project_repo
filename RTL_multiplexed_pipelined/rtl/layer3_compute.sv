@@ -15,20 +15,7 @@ module layer3_compute (
     logic signed [15:0] l3_latched_in [0:31];
     logic signed [15:0] l3_out_reg [0:1];
 
-    logic [47:0] L3A_W_ROM [0:11]; 
-    logic [47:0] L3B_W_ROM [0:11]; 
-    logic signed [15:0] L3_b_ROM [0:1];
-    
-    initial begin
-        l3_tick = 0;
-        l3_busy = 0;
-    end
-    
-    initial begin
-        $readmemh("hex_files/L3A_W.hex", L3A_W_ROM);
-        $readmemh("hex_files/L3B_W.hex", L3B_W_ROM);
-        $readmemh("hex_files/L3_b.hex", L3_b_ROM);
-    end
+
 
     // STRICT FSM (with re-latch for back-to-back throughput)
     always_ff @(posedge clk or negedge rst_n) begin
@@ -97,8 +84,29 @@ module layer3_compute (
     generate
         for (i = 0; i < 2; i++) begin : L3_MAC
             logic [47:0] w_bus_a, w_bus_b;
-            assign w_bus_a = (l3_busy) ? L3A_W_ROM[(i*6) + (l3_tick-1)] : 48'd0;
-            assign w_bus_b = (l3_busy) ? L3B_W_ROM[(i*6) + (l3_tick-1)] : 48'd0;
+            logic [47:0] w_bus_a_raw, w_bus_b_raw;
+            logic [3:0] w_addr;
+            logic [0:0] b_addr;
+
+            assign w_addr = 4'((i*6) + int'(l3_tick) - 1);
+            assign b_addr = 1'(i);
+
+            rom_L3A_W u_rom_w_a (
+                .addr(w_addr),
+                .data(w_bus_a_raw)
+            );
+            rom_L3B_W u_rom_w_b (
+                .addr(w_addr),
+                .data(w_bus_b_raw)
+            );
+            assign w_bus_a = (l3_busy) ? w_bus_a_raw : 48'd0;
+            assign w_bus_b = (l3_busy) ? w_bus_b_raw : 48'd0;
+            
+            logic signed [15:0] b_raw;
+            rom_L3_b u_rom_b (
+                .addr(b_addr),
+                .data(b_raw)
+            );
             
             logic signed [39:0] acc;
             logic signed [31:0] p1, p2, p3, p4, p5, p6;
@@ -114,7 +122,7 @@ module layer3_compute (
             assign p6 = l3b_in3 * $signed(w_bus_b[15:0]);
 
             assign final_acc = acc + (p1 + p2) + (p3 + p4) + (p5 + p6);
-            assign tmp = (final_acc >>> 14) + L3_b_ROM[i];
+            assign tmp = (final_acc >>> 14) + b_raw;
 
             always_ff @(posedge clk or negedge rst_n) begin
                 if (!rst_n) acc <= 0;

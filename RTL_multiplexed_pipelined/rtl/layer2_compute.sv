@@ -15,14 +15,7 @@ module layer2_compute (
     logic signed [15:0] l2_latched_in [0:31];
     logic signed [15:0] l2_out_reg [0:31];
 
-    logic [47:0] L2A_W_ROM [0:191]; 
-    logic [47:0] L2B_W_ROM [0:191]; 
-    logic signed [15:0] L2_b_ROM [0:31];
-    initial begin
-        $readmemh("hex_files/L2A_W.hex", L2A_W_ROM);
-        $readmemh("hex_files/L2B_W.hex", L2B_W_ROM);
-        $readmemh("hex_files/L2_b.hex", L2_b_ROM);
-    end
+
 
     // STRICT FSM (with re-latch for back-to-back throughput)
     always_ff @(posedge clk or negedge rst_n) begin
@@ -91,8 +84,29 @@ module layer2_compute (
     generate
         for (i = 0; i < 32; i++) begin : L2_MAC
             logic [47:0] w_bus_a, w_bus_b;
-            assign w_bus_a = (l2_busy) ? L2A_W_ROM[(i*6) + (l2_tick-1)] : 48'd0;
-            assign w_bus_b = (l2_busy) ? L2B_W_ROM[(i*6) + (l2_tick-1)] : 48'd0;
+            logic [47:0] w_bus_a_raw, w_bus_b_raw;
+            logic [7:0] w_addr;
+            logic [4:0] b_addr;
+
+            assign w_addr = 8'((i*6) + int'(l2_tick) - 1);
+            assign b_addr = 5'(i);
+
+            rom_L2A_W u_rom_w_a (
+                .addr(w_addr),
+                .data(w_bus_a_raw)
+            );
+            rom_L2B_W u_rom_w_b (
+                .addr(w_addr),
+                .data(w_bus_b_raw)
+            );
+            assign w_bus_a = (l2_busy) ? w_bus_a_raw : 48'd0;
+            assign w_bus_b = (l2_busy) ? w_bus_b_raw : 48'd0;
+            
+            logic signed [15:0] b_raw;
+            rom_L2_b u_rom_b (
+                .addr(b_addr),
+                .data(b_raw)
+            );
             
             logic signed [39:0] acc;
             logic signed [31:0] p1, p2, p3, p4, p5, p6;
@@ -109,7 +123,7 @@ module layer2_compute (
             assign p6 = l2b_in3 * $signed(w_bus_b[15:0]);
 
             assign final_acc = acc + (p1 + p2) + (p3 + p4) + (p5 + p6);
-            assign tmp = (final_acc >>> 14) + L2_b_ROM[i];
+            assign tmp = (final_acc >>> 14) + b_raw;
             assign tmp_relu = (tmp < 0) ? 40'sd0 : tmp;
 
             always_ff @(posedge clk or negedge rst_n) begin
